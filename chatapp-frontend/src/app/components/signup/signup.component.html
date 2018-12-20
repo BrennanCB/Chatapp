@@ -2,26 +2,40 @@
   <div class="row">
     <div class="col s10 offset-s1" id="panel">
       <h3 class="blue-grey lighten-2" id="title">Sign up</h3>
-      <form class="col s12">
+      <div *ngIf="errorMessage" id="errorMsg">
+        <span>
+          {{errorMessage}}
+        </span>
+      </div>
+      <form (ngSubmit)="signupUser()" [formGroup]="signupForm" class="col s12" novalidate>
         <div class="row">
           <div class="input-field col s12">
-            <input id="signup-username" type="text">
-            <label for="signup-username">username</label>
+            <input autocomplete="username" formControlName="username" id="signup-username" type="text">
+            <label for="signup-username">Username</label>
+            <span *ngIf="signupForm.controls['username'].invalid && signupForm.controls['username'].touched" class="error">
+              Username is required
+            </span>
           </div>
         </div>
         <div class="row">
           <div class="input-field col s12">
-            <input id="signup-email" type="email">
+            <input formControlName="email" id="signup-email" type="email">
             <label for="signup-email">Email</label>
+            <span *ngIf="signupForm.controls['email'].invalid && signupForm.controls['email'].touched" class="error">
+              Email is required
+            </span>
           </div>
         </div>
         <div class="row">
           <div class="input-field col s12">
-            <input id="signup-password" type="password">
+            <input autocomplete="new-password" formControlName="password" id="signup-password" type="password">
             <label for="signup-password">Password</label>
+            <span *ngIf="signupForm.controls['password'].invalid && signupForm.controls['password'].touched" class="error">
+              Password is required
+            </span>
           </div>
         </div>
-        <button id="signup-button" class="btn blue-grey lighten-2 waves-effect">
+        <button [disabled]="signupForm.invalid" class="btn blue-grey lighten-2 waves-effect" id="signup-btn">
           Sign up
         </button>
       </form>

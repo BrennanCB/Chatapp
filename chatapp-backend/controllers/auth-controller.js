@@ -1,8 +1,11 @@
 const Joi = require('joi');
 const HttpStatusCodes = require('http-status-codes');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user-models');
 const Helpers = require('../helpers/helpers');
-const bcrypt = require('bcryptjs');
+const dbConfig = require('../config/secret');
 
 module.exports = {
     async CreateUser(req, res) {
@@ -12,13 +15,11 @@ module.exports = {
             password: Joi.string().min(5).required()
         });
 
-
         const {error, value} = Joi.validate(req.body, schema);
 
         if (error && error.details) {
             return res.status(HttpStatusCodes.BAD_REQUEST).json({message: error.details});
         }
-
 
         const userEmail = await User.findOne({email: Helpers.lowerCase(value.email)});
 
@@ -32,7 +33,6 @@ module.exports = {
             return res.status(HttpStatusCodes.CONFLICT).json({message: 'Username already exists'});
         }
 
-
         return bcrypt.hash(value.password, 10, async (err, hash) => {
             if (err) {
                 return res.status(HttpStatusCodes.BAD_REQUEST).json({message: 'Error hashing password'});
@@ -45,9 +45,14 @@ module.exports = {
             };
             try {
                 const user = await User.create(body);
-                console.log(user);
 
-                res.status(HttpStatusCodes.CREATED).json({'message': 'User created successfully'});
+                const token = jwt.sign({data: user}, dbConfig.secret, {
+                    expiresIn: 120
+                });
+
+                res.cookie('auth', token);
+
+                res.status(HttpStatusCodes.CREATED).json({'message': 'User created successfully', user, token});
             } catch (error) {
                 res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({message: 'Error occured'});
             }
